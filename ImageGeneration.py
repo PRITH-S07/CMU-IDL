@@ -1,9 +1,9 @@
 import os
 import json
-import requests
+# import requests
 
 ROOT = os.getcwd()
-PROMPT_BASE = "Create an impressionist/expressionist-style painting with bold colors, dynamic brushstrokes, and an evocative atmosphere. The image should depict the following scene: "
+PROMPT_BASE = "Create an impressionist/expressionist-style painting which depicts the following scene: "
 
 
 
@@ -38,4 +38,7 @@ def generate_and_save_images(image_prompt_dict, generator = "firefly", output_di
 
 
 image_prompt_dict = collect_images_prompt(PROMPT_BASE)
-generate_and_save_images(image_prompt_dict)
+success_count = generate_and_save_images(image_prompt_dict)
+print(success_count)
+assert(success_count == 3606) #check
+
