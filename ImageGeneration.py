@@ -31,7 +31,7 @@ def generate_and_save_images(image_prompt_dict, generator = "firefly", output_di
             with open(output_file, "wb") as file:
                 file.write(response.content)
         else:
-            print(f"smh try again. status code: {response.status_code}")
+            print(f"smh try again. image file: {image}. status code: {response.status_code}")
     
     #return number of successfuly written images
     return len(os.listdir(os.path.join(ROOT, output_dir)))
