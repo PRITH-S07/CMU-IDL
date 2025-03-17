@@ -2,3 +2,6 @@ boto3
 python-dotenv
 openai
 requests
+pillow
+rembg
+numpy
