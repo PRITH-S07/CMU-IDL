@@ -9,7 +9,9 @@ load_dotenv(override=True)
 
 ROOT = os.getcwd()
 STYLES = ["impressionist", "expressionist"]
-PROMPT_BASE = "Create an {style}-style painting which depicts the following scene: "
+PROMPT_BASE = (
+    "Create a single {style}-style painting which depicts the following scene: "
+)
 
 CLIENT = AzureOpenAI(
     api_version="2024-02-01",
@@ -102,6 +104,6 @@ success_count = generate_and_save_images(
     image_prompt_dict,
     generator="dalle",
     output_dir="images/dalle",
-    max_invocations=250,
+    max_invocations=200,
 )
 print(f"Generated {success_count} images successfully")
