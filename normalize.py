@@ -109,4 +109,4 @@ if __name__ == "__main__":
             print(f"Image {output_path} already exists")
             continue
         crop_and_scale_image(input_path, output_path)
-    print("Normalization complete!")
+    print("Normalization complete:", print(len(os.listdir(OUTPUT_DIR))))
