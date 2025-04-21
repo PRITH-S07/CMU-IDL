@@ -8,7 +8,7 @@ import numpy as np
 class CLIPSVMDiscriminator:
     def __init__(self, model_name="openai/clip-vit-base-patch32", device=None):
         self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print("Running on:", "cuda" if torch.cuda.is_available() else "cpu")
+        print("Running on:", self.device)
         self.model = CLIPModel.from_pretrained(model_name)
         self.processor = CLIPProcessor.from_pretrained(model_name)
         self.model.to(self.device)
