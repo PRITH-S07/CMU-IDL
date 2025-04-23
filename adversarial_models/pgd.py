@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from attack import Attack
+from adversarial_models.attack import Attack
 
 
 class PGD(Attack):
