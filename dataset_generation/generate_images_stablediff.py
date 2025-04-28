@@ -1,4 +1,3 @@
-
 import os
 import json
 from huggingface_hub import InferenceClient
@@ -9,7 +8,6 @@ ROOT = os.getcwd()
 PROMPT_BASE = "Create an impressionist/expressionist-style painting which depicts the following scene: "
 
 
-
 def collect_images_prompt(prompt_base, caption_file="ArtCap.json"):
     """
     Load captions from a JSON file and build a dictionary of prompts.
@@ -17,11 +15,14 @@ def collect_images_prompt(prompt_base, caption_file="ArtCap.json"):
         { "id1": ["caption part 1", "caption part 2", ...],
           "id2": ["caption part A", "caption part B", ...], ... }
     """
-    with open(os.path.join(ROOT, caption_file), 'r') as file:
+    with open(os.path.join(ROOT, caption_file), "r") as file:
         captions = json.load(file)
     # Concatenate the prompt base with the joined caption parts.
-    prompt_dict = {i: prompt_base + ' ' + '. '.join(caps) for i, caps in captions.items()}
+    prompt_dict = {
+        i: prompt_base + " " + ". ".join(caps) for i, caps in captions.items()
+    }
     return prompt_dict
+
 
 import time
 import requests
@@ -33,6 +34,7 @@ client = InferenceClient(
     api_key="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",
 )
 
+
 def generate_image(prompt, max_retries=3, delay=5):
     """
     Generate an image using the Hugging Face InferenceClient with retries on 503 errors.
@@ -41,21 +43,22 @@ def generate_image(prompt, max_retries=3, delay=5):
     for attempt in range(max_retries):
         try:
             image = client.text_to_image(
-                prompt,
-                model="stable-diffusion-v1-5/stable-diffusion-v1-5"
+                prompt, model="stable-diffusion-v1-5/stable-diffusion-v1-5"
             )
             # If successful, return the image with status code 200
             return image, 200
-        
+
         except requests.exceptions.HTTPError as e:
             # If we specifically get a 503, we can retry
             if e.response.status_code == 503:
-                print(f"503 error on attempt {attempt+1}. Retrying in {delay} seconds...")
+                print(
+                    f"503 error on attempt {attempt+1}. Retrying in {delay} seconds..."
+                )
                 time.sleep(delay)
             else:
                 print(f"HTTPError (status code {e.response.status_code}): {e}")
                 return None, e.response.status_code
-        
+
         except Exception as e:
             # Handle any other exceptions
             print(f"Error generating image: {e}")
@@ -65,7 +68,9 @@ def generate_image(prompt, max_retries=3, delay=5):
     return None, 503
 
 
-def generate_and_save_images(image_prompt_dict, generator="stable_diff", output_dir="generated_images"):
+def generate_and_save_images(
+    image_prompt_dict, generator="stable_diff", output_dir="generated_images"
+):
     """
     Iterate over the prompt dictionary, generate images, and save them.
     """
@@ -80,8 +85,11 @@ def generate_and_save_images(image_prompt_dict, generator="stable_diff", output_
             success_count += 1
             print(f"Saved image {image_id} to {output_file}")
         else:
-            print(f"Error generating image for image id: {image_id} (status code: {status_code})")
+            print(
+                f"Error generating image for image id: {image_id} (status code: {status_code})"
+            )
     return success_count
+
 
 if __name__ == "__main__":
     # Collect image prompts from ArtCap.json using the provided prompt base.
