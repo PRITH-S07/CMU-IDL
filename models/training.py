@@ -2,7 +2,10 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
-def train_generator_with_selective_noise(generator, fixed_discriminator, dataloader, optimizer, device, lambda_reg=0.1):
+
+def train_generator_with_selective_noise(
+    generator, fixed_discriminator, dataloader, optimizer, device, lambda_reg=0.1
+):
     generator.train()
     total_loss = 0.0
     total_fool_rate = 0.0
@@ -49,7 +52,10 @@ def train_generator_with_selective_noise(generator, fixed_discriminator, dataloa
     print(f"Average Generator Loss: {avg_loss:.4f}, Fool Rate: {avg_fool_rate:.4f}")
     return avg_loss, avg_fool_rate
 
-def evaluate_generator_with_discriminator(generator, fixed_discriminator, ai_dataloader, device):
+
+def evaluate_generator_with_discriminator(
+    generator, fixed_discriminator, ai_dataloader, device
+):
     generator.eval()
     all_probs = []
     all_preds = []
@@ -78,8 +84,12 @@ def evaluate_generator_with_discriminator(generator, fixed_discriminator, ai_dat
         fool_rate = np.mean(np.array(all_preds) == 1)
         print(f"Evaluation - Average SVM 'real' probability: {avg_prob:.4f}")
         print(f"Evaluation - Fool rate (classified as real): {fool_rate:.4f}")
-        original_embeddings = np.vstack(original_embeddings) if original_embeddings else np.array([])
-        perturbed_embeddings = np.vstack(perturbed_embeddings) if perturbed_embeddings else np.array([])
+        original_embeddings = (
+            np.vstack(original_embeddings) if original_embeddings else np.array([])
+        )
+        perturbed_embeddings = (
+            np.vstack(perturbed_embeddings) if perturbed_embeddings else np.array([])
+        )
         return avg_prob, fool_rate, original_embeddings, perturbed_embeddings
     else:
         print("No AI-generated samples to evaluate")
