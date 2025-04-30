@@ -1,10 +1,11 @@
 import torch
 import torch.nn as nn
 from torchattacks.attack import Attack
+from AttentionPatchExtractor import AttentionPatchExtractor
 
 class CLIPPatchPGDAttack(Attack):
     def __init__(self, model, svm, eps=8 / 255, alpha=2/255, steps=10, 
-                 patch_size=16, num_patches=5, random_start=True):
+                 patch_size=16, num_patches=5, patch_selection_strategy = 'grad', random_start=True):
         super().__init__("PatchPGD", model)
         self.eps = eps
         self.alpha = alpha
@@ -15,6 +16,9 @@ class CLIPPatchPGDAttack(Attack):
         self.supported_mode = ['default']
         self.svm_weights = torch.FloatTensor(svm.coef_[0])
         self.svm_bias = torch.tensor(svm.intercept_[0])
+        
+        self.patch_selection_strategy = patch_selection_strategy
+        self.attention_analyzer = AttentionPatchExtractor(model.model, model.processor, num_patches=num_patches)
 
     
     def get_logits(self, inputs):
@@ -98,29 +102,35 @@ class CLIPPatchPGDAttack(Attack):
         # Store patch mask for visualization
         final_patch_mask = None
         
-        for _ in range(self.steps):
+        for step in range(self.steps):
             # Apply current perturbations to selected patches
             curr_adv_images = images.clone().detach()
-            if final_patch_mask is not None:
-                curr_adv_images = images + delta * final_patch_mask
             
-            curr_adv_images.requires_grad = True
-            outputs = self.get_logits(curr_adv_images)
+            if self.patch_selection_strategy == 'grad':
+                if final_patch_mask is not None:
+                    curr_adv_images = images + delta * final_patch_mask
+                
+                curr_adv_images.requires_grad = True
+                outputs = self.get_logits(curr_adv_images)
+                
+                loss = svm_boundary_loss(outputs)
+    # Convert loss to scalar by taking mean across batch
+                loss = loss.mean()  # This fixes the gradient computation error
+                print(f"Loss: {loss.item():.6f}")
+                grad = torch.autograd.grad(loss, curr_adv_images, 
+                                        retain_graph=False,
+                                        create_graph=False)[0]
+                
+                # Create patch mask based on gradients
+                patch_mask = self.create_patch_mask(grad, images.shape[-2:])
+                final_patch_mask = patch_mask  # Save the mask for visualization
             
-            loss = svm_boundary_loss(outputs)
-# Convert loss to scalar by taking mean across batch
-            loss = loss.mean()  # This fixes the gradient computation error
-            print(f"Loss: {loss.item():.6f}")
-            grad = torch.autograd.grad(loss, curr_adv_images, 
-                                      retain_graph=False,
-                                      create_graph=False)[0]
-            
-            # Create patch mask based on gradients
-            patch_mask = self.create_patch_mask(grad, images.shape[-2:])
-            final_patch_mask = patch_mask  # Save the mask for visualization
-            
+            if self.patch_selection_strategy == 'attention':
+                patch_mask = self.attention_analyzer.get_patch_mask(images)
+                final_patch_mask = patch_mask
+                
             # Apply initial random noise if this is the first iteration
-            if _ == 0 and self.random_start:
+            if step == 0 and self.random_start:
                 delta = random_noise * patch_mask
             
             # Update perturbations within the patches
