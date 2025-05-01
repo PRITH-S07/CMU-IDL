@@ -2,13 +2,25 @@ import torch
 from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, average_precision_score
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    average_precision_score,
+)
 import numpy as np
+
 
 class CLIPSVMDiscriminator:
     def __init__(self, model_name="openai/clip-vit-base-patch32", device=None):
-        self.device = device if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print("Running on:", "cuda" if torch.cuda.is_available() else "cpu")
+        self.device = (
+            device
+            if device is not None
+            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        )
+        print("Running on:", self.device)
         self.model = CLIPModel.from_pretrained(model_name)
         self.processor = CLIPProcessor.from_pretrained(model_name)
         self.model.to(self.device)
@@ -16,13 +28,8 @@ class CLIPSVMDiscriminator:
         self.svm = SVC(kernel="linear", C=1.0, probability=True)
         self.svm_trained = False
 
-    def run_clip(self, image_path):
-        with Image.open(image_path) as img:
-            img = img.convert("RGB")
-            if img.size != (512, 512):
-                img = img.resize((512, 512))
-                img.save(image_path)
-        inputs = self.processor(images=img, return_tensors="pt").to(self.device)
+    def run_clip(self, images):
+        inputs = self.processor(images=images, return_tensors="pt").to(self.device)
         with torch.no_grad():
             outputs = self.model.vision_model(inputs.pixel_values)
             image_features = outputs.last_hidden_state[:, 0, :]
@@ -46,9 +53,9 @@ class CLIPSVMDiscriminator:
         y_pred = model.predict(X_test)
         y_pred_proba = model.predict_proba(X_test)[:, 1]
         accuracy = accuracy_score(y_test, y_pred)
-        precision = precision_score(y_test, y_pred, average='weighted')
-        recall = recall_score(y_test, y_pred, average='weighted')
-        f1 = f1_score(y_test, y_pred, average='weighted')
+        precision = precision_score(y_test, y_pred, average="weighted")
+        recall = recall_score(y_test, y_pred, average="weighted")
+        f1 = f1_score(y_test, y_pred, average="weighted")
         auc = roc_auc_score(y_test, y_pred_proba)
         ap_per_class = []
         for class_label in np.unique(y_test):
@@ -68,5 +75,7 @@ class CLIPSVMDiscriminator:
             "recall": recall,
             "f1": f1,
             "auc": auc,
-            "map": map_score
+            "map": map_score,
+            "probs": y_pred_proba,
+            "preds": y_pred,
         }

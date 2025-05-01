@@ -6,3 +6,10 @@ pillow
 rembg
 numpy
 vertexai
+pandas
+torch
+scikit-learn
+joblib
+transformers
+torchvision
+torchattacks

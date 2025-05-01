@@ -20,6 +20,7 @@ PROMPT_BASE = (
 
 MODEL = ImageGenerationModel.from_pretrained("imagen-3.0-fast-generate-001")
 
+
 def collect_images_prompt(prompt_base, caption_file="ArtCap.json", shuffle=False):
     prompt_base = PROMPT_BASE.format(style=random.choice(STYLES))
     with open(os.path.join(ROOT, caption_file), "r") as file:
@@ -35,7 +36,7 @@ def collect_images_prompt(prompt_base, caption_file="ArtCap.json", shuffle=False
 
 
 def generate_image(prompt):
-        # Generate the image
+    # Generate the image
     response = MODEL.generate_images(
         prompt=prompt,
         number_of_images=1,
@@ -45,10 +46,10 @@ def generate_image(prompt):
         # person_generation="allow_all"
     )
     print(response)
-    
+
     # Get the image data
     image_data = response[0]
-    
+
     return image_data
 
 

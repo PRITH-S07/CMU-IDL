@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class NoiseGenerator(nn.Module):
     def __init__(self, embedding_dim=768):
         super(NoiseGenerator, self).__init__()
